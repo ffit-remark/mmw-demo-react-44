@@ -21,3 +21,17 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# sdk package
+*.wasm
+
+/public/mitekSDK/*.html
+/public/mitekSDK/*.js
+/public/mitekSDK/*.json
+/public/mitekSDK/*.png
+/public/mitekSDK/*-shard1
+
+/src/images/*.gif
+/src/images/*.png
+/src/images/*.jpg
+mitek-science-sdk.js
