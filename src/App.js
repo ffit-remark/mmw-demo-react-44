@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import Gallery from './Gallery';
 import DocTypeState from './DocTypeState.js';
-import logo from './logo.svg';
-import './App.css';
+import CaptureModeState from './CaptureModeState';
+import OptionsState from './OptionsState';
 import {sdkWrapper} from './mitek/sdkWrapper';
 
 
@@ -13,14 +13,20 @@ function App() {
 	const [mode,    setMode]    = useState('AUTO_CAPTURE');
 	const [subject, setSubject] = useState('SELFIE');
 
+    // The gallery construct holds all the items (pictures) represented in the Gallery component
 	const [gallery, setGallery] = useState({
 		pictures: Array(4).fill({
-			image: dummyImage,
 			docType: '',
+			image: dummyImage,
 			mibiData: {},
 			decodedStr: '',
 		})
-	});
+    });
+    
+    const [options, setOptions] = useState({
+        timeoutSec: 10,
+        showCancel: false,
+    });
 
 	const showViewportMods = isVisible => {
 		console.log(`Viewport Mods are ${isVisible?'':'not'} visible`);
@@ -50,8 +56,8 @@ function App() {
 		const picturesMut = [...gallery.pictures];
 
 		picturesMut[getDocTypeIdx(picturesMut, subject)] = {
-			image: result.response.imageData,
 			docType: result.response.docType,
+			image: result.response.imageData,
 			mibiData: result.response.mibiData,
 			decodedStr: result.response.code,
 		};
@@ -68,6 +74,7 @@ function App() {
 	 * Invokes the SDK Wrapper to start a Manual, Auto or Direct capture.
 	 */
 	const startCaptureSession = () => {
+        sdkWrapper.settings.captureTimeSec = options.timeoutSec;
 		if ( mode === "MANUAL_CAPTURE" ) {
             sdkWrapper.startManual(subject, isSpinnerDisplayed)
                 .then( handleResult )
@@ -93,47 +100,18 @@ function App() {
             <div className="card">
                 <h3 className="card-header">MiSnap for Mobile Web SDK 4.4</h3>
                 <div className="card-body">
-                    <div className="form-check">
-                        <input className="form-check-input"
-                            id="autoMode"
-                            type="radio"
-                            name="capture-mode"
-                            value="AUTO_CAPTURE"
-                            checked={mode === "AUTO_CAPTURE"}
-                            onChange={res => setMode(res.target.value)}
-                        />
-                        <label className="form-check-label" htmlFor="autoMode">Auto</label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input"
-                            id="manualMode"
-                            type="radio"
-                            name="capture-mode"
-                            value="MANUAL_CAPTURE"
-                            checked={mode === "MANUAL_CAPTURE"}
-                            onChange={res => setMode(res.target.value)}
-                        />
-                        <label className="form-check-label" htmlFor="manualMode">Manual</label>
-                    </div>
-                    <div className="form-check">
-                        <input className="form-check-input"
-                            id="directMode"
-                            type="radio"
-                            name="capture-mode"
-                            value="DIRECT"
-                            checked={mode === "DIRECT"}
-                            onChange={res => setMode(res.target.value)}
-                        />
-                        <label className="form-check-label" htmlFor="directMode">Direct Science</label>
-                    </div>
-                    <br />
                     <DocTypeState initialDocType={subject} onChange={setSubject} />
+                    <CaptureModeState initialMode={mode} onChange={setMode} />
+                    <hr />
+                    <label>Auto Capture Options:</label>
+                    <OptionsState initialTimeout={options.timeoutSec}
+                        initialShowCancel={options.showCancel} onChange={setOptions} />
                 </div>
-
+                
                 <div className="card-footer">
                     <button className="btn btn-primary"
                         onClick={ startCaptureSession }
-                    >Push iT!</button>
+                    >Get Image</button>
                 </div>
             </div>
 

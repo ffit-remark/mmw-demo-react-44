@@ -1,3 +1,8 @@
+/**
+ * This is a simple example showing how to wrap the MiSnap SDK module code
+ * in a wrapper object that uses the Promise proxy object for the capture modes
+ */
+
 import './mitekSDK.css';
 import * as mitekScienceSDK from './mitek-science-sdk';
 
@@ -22,8 +27,9 @@ const autoHints = {
 };
 
 
+// This library can be used by the client code for displaying user freindly messages.
 // eslint-disable-next-line no-unused-vars
-const cvExceptions = {
+const manualHints = {
 	MITEK_ERROR_FOUR_CORNER: 'We can\'t find the 4 corners of your document.',
 	MITEK_ERROR_TOO_DARK: 'There is not enough light on your document.',
 	MITEK_ERROR_FOCUS: 'The image is too blurry.',

@@ -1,5 +1,8 @@
-import React, {useState} from 'react';
+/**
+ * This component handles selection input for the MiSnap docType parameter. 
+ */
 
+import React, {useState} from 'react';
 
 const DocTypeState = props => {
 
