@@ -3,8 +3,9 @@
  * in a wrapper object that uses the Promise proxy object for the capture modes
  */
 
-import './mitekSDK.css';
+//import './mitekSDK.css';
 import * as mitekScienceSDK from './mitek-science-sdk';
+
 
 // These are hints that are recommended for displaying
 // to the end user during auto capture.
@@ -21,81 +22,88 @@ const autoHints = {
 	MISNAP_READY_POSE: 'Hold it There',
 	NO_FACE_FOUND: 'No Face Detected',
 	MITEK_ERROR_GLARE: 'Reduce Glare',
-	MITEK_ERROR_FOUR_CORNER: 'Document Not Found',
+    MITEK_ERROR_FOUR_CORNER: 'Fill the guide image',
 	MITEK_ERROR_TOO_DARK: 'Too Dark. Use good lighting',
-	MITEK_ERROR_FOCUS: 'Hold Steady'
+    MITEK_ERROR_FOCUS: 'Hold Steady',
+    CV_NO_BARCODE_FOUND: 'Fill the guide image'
 };
 
 
-// This library can be used by the client code for displaying user freindly messages.
-// eslint-disable-next-line no-unused-vars
-const manualHints = {
-	MITEK_ERROR_FOUR_CORNER: 'We can\'t find the 4 corners of your document.',
-	MITEK_ERROR_TOO_DARK: 'There is not enough light on your document.',
-	MITEK_ERROR_FOCUS: 'The image is too blurry.',
-	MITEK_ERROR_GLARE: 'The image has glare.',
-	MITEK_ERROR_MIN_PADDING: 'Move the camera further away from your document.',
-	MITEK_ERROR_HORIZONTAL_FILL: 'Move the camera closer to your document.',
-	MITEK_ERROR_SKEW_ANGLE: 'Document is skewed.  Hold camera directly over your document.',
-	MITEK_ERROR_LOW_CONTRAST: 'Center your document on a dark background.',
-	MITEK_ERROR_BUSY_BACKGROUND: 'The background is too busy.  Please use a solid background.',
-	MITEK_ERROR_MRZ_MISSING: 'No MRZ found',
-	CV_NO_BARCODE_FOUND: 'We were unable to detect the barcode from the back of your license.',
-	IMAGE_SMALLER_THAN_MIN_SIZE: 'The image you provided is too small.',
-	CORRUPT_IMAGE: 'The image you provided is unreadable.',
-	MISNAP_HEAD_SKEWED: 'Look Straight Ahead',
-	MISNAP_HEAD_TOO_CLOSE: 'Move Farther Away',
-	MISNAP_HEAD_TOO_FAR: 'Get Closer',
-	NO_FACE_FOUND: 'No Face Detected',
-};
-
-
-const mitekApiPath = `${process.env.PUBLIC_URL}/mitekSDK/`;
-const captureTimeSec = 20;
+const sdkResourcePath = `${process.env.PUBLIC_URL}/mitekSDK/`;
 
 let timerId = null;
-let hintervalId = null;
 
 export const sdkWrapper = {
     settings: {
-         mitekApiPath: mitekApiPath,
-         captureTimeSec: captureTimeSec
+        captureTimeSec: 20,
+        showCancelButton: false,
+        sdkOptions: {
+            qualityPercent: 80,
+            guidePaddingLevel: 1,
+            hintMessageSize: 2,
+            hintFrequencyMS: 1200,
+            disableSmileDetection: false,
+            videoContainerId: null,
+            hintAriaLive: 2,
+        }
     },
-    
+
+    getVersion() {
+        return mitekScienceSDK.getVersion();
+    },
+
     // Stop and clean up all active processes
     stopAuto() {
         clearTimeout(timerId);
-        clearInterval(hintervalId);
-        mitekScienceSDK.cmd('HIDE_HINT');
         mitekScienceSDK.cmd('SDK_STOP');
     },
 
+    addCancelButton() {
+
+        var mitekDisplayContainer = document.querySelector('#mitekDisplayContainer');
+
+        // add a button to allow the user to capture a frame
+        var buttonEl = document.createElement('button');
+        buttonEl.setAttribute('id', 'mitekCancelButton');
+        buttonEl.setAttribute('style', 'position: absolute; right: 15px; top: 15px; z-index: 100');
+        buttonEl.innerHTML = 'Cancel';
+        buttonEl.onclick = e => {
+          this.stopAuto();
+        };
+        mitekDisplayContainer.appendChild(buttonEl);
+    },
+
+    controlSelfieGuideImage(hintKey) {
+        const divFace = document.body.getElementsByClassName('integrator SELFIE');
+        // turn oval green if head is in guide
+        if (hintKey === 'MISNAP_SMILE'
+            || hintKey === 'MISNAP_STOP_SMILING'
+            || hintKey === 'MISNAP_READY_POSE') {
+            divFace[0].classList.add('FACE_IN_GUIDE');
+        }
+        else {
+            divFace[0].classList.remove('FACE_IN_GUIDE');
+        }
+    },
+    
     // Starts an auto-capture session with a promise.
     // Resolves to the FRAME_CAPTURE_RESULT handler object.
     // Rejects on SDK_ERROR, session timeout.
     startAuto(subject) {
-        let recentHint = 'Fill the guide image';
 
-        // frames started processing
+        // frames started processing. add any viewport layout elements
         mitekScienceSDK.on('FRAME_PROCESSING_STARTED', e => {
-
+            if(this.settings.showCancelButton)
+                this.addCancelButton();
         });
 
+        // fires every settings.options.hintFrequencyMS
         mitekScienceSDK.on('FRAME_PROCESSING_FEEDBACK', status => {
 
-            recentHint = autoHints[status.key];
+            mitekScienceSDK.cmd('SHOW_HINT', autoHints[status.key]);
 
             if (subject === 'SELFIE') {
-                let divFace = document.body.getElementsByClassName('integrator SELFIE');
-                // turn oval green if head is in guide
-                if (status.key === 'MISNAP_SMILE'
-                    || status.key === 'MISNAP_STOP_SMILING'
-                    || status.key === 'MISNAP_READY_POSE') {
-                    divFace[0].classList.add('FACE_IN_GUIDE');
-                }
-                else {
-                    divFace[0].classList.remove('FACE_IN_GUIDE');
-                }
+                this.controlSelfieGuideImage(status.key);
             }
         });
 
@@ -103,10 +111,8 @@ export const sdkWrapper = {
         mitekScienceSDK.cmd('CAPTURE_AND_PROCESS_FRAME', {
             mode: 'AUTO_CAPTURE',
             documentType: subject,
-            mitekSDKPath: mitekApiPath,
-            options: {
-                qualityPercent: 80,
-            }
+            mitekSDKPath: sdkResourcePath,
+            options: this.settings.sdkOptions,
         });
 
         return new Promise((resolve, reject) => {
@@ -131,11 +137,6 @@ export const sdkWrapper = {
                     reject(exception);
                 }, this.settings.captureTimeSec * 1000);
 
-                hintervalId = setInterval(() => {
-                    if (recentHint != null || recentHint !== undefined) {
-                        mitekScienceSDK.cmd('SHOW_HINT', recentHint);
-                    }
-                }, 500);
             });
 
             // frame captured
@@ -156,14 +157,14 @@ export const sdkWrapper = {
         mitekScienceSDK.cmd('CAPTURE_AND_PROCESS_FRAME', {
             mode: 'MANUAL_CAPTURE',
             documentType: subject,
-            mitekSDKPath: mitekApiPath,
+            mitekSDKPath: sdkResourcePath,
             options: {
                 qualityPercent: 80
             }
         });
 
-        mitekScienceSDK.on('FRAME_PROCESSING_STARTED', e => {
-            cvCallback();
+        mitekScienceSDK.on('IMAGE_CAPTURED', () => {
+            cvCallback(true);
         });
 
         return new Promise((resolve, reject) => {
@@ -192,3 +193,75 @@ export const sdkWrapper = {
         });
     }
 }
+
+
+// Enum for the exceptions returned in the SDK_ERROR event.
+// eslint-disable-next-line no-unused-vars
+const sdkErrors = {
+    111:{
+        message: 'The video camera must support 720p resolution. Or, the app is not hosted via TLS',
+        action: 'Move to a device with higher res video. Or, make sure the app is served over HTTPS'
+    },
+    112:{
+        message: 'No video camera was found',
+        action: 'Move to a device that has a video camera.'
+    },
+    113:{
+        message: 'Camera Permission was Denied',
+        action: 'Click "accept/allow" when prompted for camera permission.'
+    },
+    120:{
+        message: 'Unable to start the camera / unknown error',
+        action: 'Switch to manual capture mode.'
+    },
+    331:{
+        message: 'An unknown command method was called',
+        action: 'Check source code and correct any misspelled cmd key names.'
+    },
+    332:{
+        message: 'Incorrect number of arguments passed to the cmd method',
+        action: 'Check source code and correct any with a wrong argument count.'
+    },
+    333:{
+        message: 'The getUserMedia method is not supported by the browser',
+        action: 'Switch to manual capture mode.'
+    },
+    334:{
+        message: 'Web Assembly is not supported by the browser',
+        action: 'Switch to manual capture mode.'
+    },
+    335:{
+        message: 'This device is not supported',
+        action: 'Switch to manual capture mode.'
+    },
+    336:{
+        message: 'This device does not support WebGL',
+        action: 'Switch to manual capture mode.'
+    },
+    339:{
+        message: 'This device does not support WebGL shader features',
+        action: 'Switch to manual capture mode.'
+    },
+};
+
+// This library can be used by the client code for displaying user freindly messages.
+// eslint-disable-next-line no-unused-vars
+const manualHints = {
+	MITEK_ERROR_FOUR_CORNER: 'We can\'t find the 4 corners of your document.',
+	MITEK_ERROR_TOO_DARK: 'There is not enough light on your document.',
+	MITEK_ERROR_FOCUS: 'The image is too blurry.',
+	MITEK_ERROR_GLARE: 'The image has glare.',
+	MITEK_ERROR_MIN_PADDING: 'Move the camera further away from your document.',
+	MITEK_ERROR_HORIZONTAL_FILL: 'Move the camera closer to your document.',
+	MITEK_ERROR_SKEW_ANGLE: 'Document is skewed.  Hold camera directly over your document.',
+	MITEK_ERROR_LOW_CONTRAST: 'Center your document on a dark background.',
+	MITEK_ERROR_BUSY_BACKGROUND: 'The background is too busy.  Please use a solid background.',
+	MITEK_ERROR_MRZ_MISSING: 'No MRZ found',
+	CV_NO_BARCODE_FOUND: 'We were unable to detect the barcode from the back of your license.',
+	IMAGE_SMALLER_THAN_MIN_SIZE: 'The image you provided is too small.',
+	CORRUPT_IMAGE: 'The image you provided is unreadable.',
+	MISNAP_HEAD_SKEWED: 'Look Straight Ahead',
+	MISNAP_HEAD_TOO_CLOSE: 'Move Farther Away',
+	MISNAP_HEAD_TOO_FAR: 'Get Closer',
+	NO_FACE_FOUND: 'No Face Detected',
+};

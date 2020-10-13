@@ -1,4 +1,4 @@
-import React, {Fragment, useState} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 
 const Gallery = props => {
@@ -7,6 +7,7 @@ const Gallery = props => {
                                                 'mibi-0':false,
                                                 'mibi-1':false,
                                                 'mibi-2':false,
+                                                'mibi-3':false,
                                             });
 
     const toggleMibi = e => {
@@ -49,9 +50,9 @@ const Gallery = props => {
     });
 
     return (
-        <Fragment>
+        <>
             {imageList}
-        </Fragment>
+        </>
     );
 }
 
