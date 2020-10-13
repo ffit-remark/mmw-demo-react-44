@@ -1,11 +1,11 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 To run the project do the following:
-1. Run `npm install --save` to get dependencies.
+1. Run `yarn install` to get depenedencies.
 2. Place your `./mitekSDK/` files from the delivered package into `./public/mitekSDK`.   
-If you have a barcode decoding license named **mitek_license.png** place it there, too. 
-3. Place the delivered package's `./images/` files in the `./src/images` directory.
-4. Put the **mitek-science-sdk.js** file in `./src`.
+    a. If you have a barcode decoding license named **mitek_license.png** place it there, too. 
+3. Place the delivered package's `./images/` files in the `./src/mitek/images` directory.
+4. Put the **mitek-science-sdk.js** file in `./src/mitek`.
 
 ## c-r-a Boilerplate follows...
 ## Available Scripts

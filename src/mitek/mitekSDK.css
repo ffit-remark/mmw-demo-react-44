@@ -8,46 +8,46 @@ div.integrator {
 
 @media (orientation: portrait) {
     .integrator.DL_FRONT {
-        background: url('../images/ghost_dlfront_portrait.png') no-repeat;
+        background: url('./images/ghost_dlfront_portrait.png') no-repeat;
     }
 
     .integrator.PDF417_BARCODE {
-        background: url('../images/ghost_barcode_portrait.png') no-repeat;
+        background: url('./images/ghost_dlfront_portrait.png') no-repeat;
     }
 
     .integrator.PASSPORT {
-        background: url('../images/ghost_passport_portrait.png') no-repeat;
+        background: url('./images/ghost_passport_portrait.png') no-repeat;
     }
 
     .integrator.SELFIE {
-        background: url('../images/ghost_selfie_portrait.gif') no-repeat;
+        background: url('./images/ghost_selfie_portrait.gif') no-repeat;
     }
 
     .integrator.SELFIE.FACE_IN_GUIDE {
-        background: url('../images/ghost_selfie_portrait_green.gif') no-repeat;
+        background: url('./images/ghost_selfie_portrait_green.gif') no-repeat;
     }
 
 }
 
 @media (orientation: landscape) {
     .integrator.DL_FRONT {
-        background: url('../images/ghost_dlfront.png') no-repeat;
+        background: url('./images/ghost_dlfront.png') no-repeat;
     }
 
     .integrator.PDF417_BARCODE {
-        background: url('../images/ghost_barcode.png') no-repeat;
+        background: url('./images/ghost_dlfront.png') no-repeat;
     }
 
     .integrator.PASSPORT {
-        background: url('../images/ghost_passport.png') no-repeat;
+        background: url('./images/ghost_passport.png') no-repeat;
     }
 
     .integrator.SELFIE {
-        background: url('../images/ghost_selfie.gif') no-repeat;
+        background: url('./images/ghost_selfie.gif') no-repeat;
     }
 
     .integrator.SELFIE.FACE_IN_GUIDE {
-        background: url('../images/ghost_selfie_green.gif') no-repeat;
+        background: url('./images/ghost_selfie_green.gif') no-repeat;
     }
 }
 
@@ -78,4 +78,18 @@ div.integrator {
     width: 120px;
     height: 120px;
     animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+}
+
+.ReactCollapse--collapse {
+    transition: height 500ms;
 }

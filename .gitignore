@@ -31,7 +31,5 @@ yarn-error.log*
 /public/mitekSDK/*.png
 /public/mitekSDK/*-shard1
 
-/src/images/*.gif
-/src/images/*.png
-/src/images/*.jpg
+/src/mitek/images
 mitek-science-sdk.js
